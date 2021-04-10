@@ -31,7 +31,6 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework',
-    'polls.apps.PollsConfig',
     'users.apps.UsersConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -49,7 +48,7 @@ REST_FRAMEWORK = {
         'users.authentication.AuthenticationToken',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+        'rest_framework.permissions.IsAuthenticated'
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 1
