@@ -6,17 +6,19 @@ from django.db import models
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    class UserType(models.TextChoices):
+        client: tuple = ('client', 'client')
+        executor: tuple = ('executor', 'executor')
+        administrator: tuple = ('administrator', 'administrator')
+
     email = models.EmailField('email', unique=True)
     first_name = models.CharField('first_name', max_length=30, blank=False)
     last_name = models.CharField('last_name', max_length=30, blank=False)
     phone_number = models.CharField('phone_number', max_length=10, blank=False)
     date_joined = models.DateTimeField('date_joined', auto_now_add=True)
     is_confirmed = models.BooleanField('is_confirmed', default=False)
-    is_staff = models.BooleanField(
-        'staff status',
-        default=True,
-        help_text='Designates whether the user can log into this admin site.',
-    )
+    type = models.CharField('type', choices=UserType.choices, max_length=15, blank=False)
+    is_staff = models.BooleanField('staff status', default=False)
 
     objects = UserManager()
 
