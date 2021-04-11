@@ -1,3 +1,6 @@
+import random
+import string
+
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 
@@ -28,3 +31,24 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = 'user'
         verbose_name_plural = 'users'
+
+
+class RegistrationToken(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    token = models.CharField('token', max_length=50, blank=False)
+
+    @classmethod
+    def create_token(cls, user: User) -> str:
+        """
+        Creates a registration token for a given User
+
+        :param user: User for who need to generate token
+        :return: token
+        """
+
+        def _token_generator(size=50, chars=string.ascii_lowercase + string.digits) -> str:
+            return ''.join(random.choice(chars) for _ in range(size))
+
+        token = _token_generator()
+        cls.objects.update_or_create(user=user, token=token)
+        return token
