@@ -14,12 +14,19 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField('last_name', max_length=30, blank=False)
     phone_number = models.CharField('phone_number', max_length=10, blank=False)
     date_joined = models.DateTimeField('date_joined', auto_now_add=True)
-    is_staff = models.BooleanField('staff status', default=False)
+    is_staff = models.BooleanField('staff status', default=True)
 
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name', 'phone_number']
+
+    @property
+    def full_name(self) -> str:
+        return f'{self.first_name} {self.last_name}'
+
+    def __str__(self):
+        return self.email
 
     class Meta:
         verbose_name = 'user'
@@ -35,6 +42,9 @@ class UserRole(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     is_confirmed = models.BooleanField('is_confirmed', default=False)
     role = models.CharField('role', choices=UserRoleChoice.choices, max_length=15, blank=False)
+
+    def __str__(self):
+        return f'{self.user.email}: {self.role}'
 
     class Meta:
         unique_together = ['user', 'role']
