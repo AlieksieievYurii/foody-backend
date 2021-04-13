@@ -26,30 +26,30 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = 'users'
 
 
-class UserType(models.Model):
-    class UserTypeChoice(models.TextChoices):
+class UserRole(models.Model):
+    class UserRoleChoice(models.TextChoices):
         client: tuple = ('client', 'client')
         executor: tuple = ('executor', 'executor')
         administrator: tuple = ('administrator', 'administrator')
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     is_confirmed = models.BooleanField('is_confirmed', default=False)
-    type = models.CharField('type', choices=UserTypeChoice.choices, max_length=15, blank=False)
+    role = models.CharField('role', choices=UserRoleChoice.choices, max_length=15, blank=False)
 
     class Meta:
-        unique_together = ['user', 'type']
+        unique_together = ['user', 'role']
 
 
 class RegistrationToken(models.Model):
-    user_type = models.OneToOneField(UserType, on_delete=models.CASCADE)
+    user_role = models.OneToOneField(UserRole, on_delete=models.CASCADE)
     token = models.CharField('token', max_length=50, blank=False)
 
     @classmethod
-    def create_token(cls, user_type: UserType) -> str:
+    def create_token(cls, user_role: UserRole) -> str:
         """
         Creates a registration token for a given User
 
-        :param user_type: UserType for who need to generate token
+        :param user_role: UserType for who need to generate token
         :return: token
         """
 
@@ -57,5 +57,5 @@ class RegistrationToken(models.Model):
             return ''.join(random.choice(chars) for _ in range(size))
 
         token = _token_generator()
-        cls.objects.update_or_create(user_type=user_type, token=token)
+        cls.objects.update_or_create(user_role=user_role, token=token)
         return token
