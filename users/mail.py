@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from foody.settings import env
 from users import views
-from users.models import User
+from users.models import User, UserRole
 
 
 class EmailManager(object):
@@ -32,12 +32,24 @@ class EmailManager(object):
 
         self.send_email([client.email], "Confirm Email", message=f"""
             <html>
-            <h3>Hi {client.first_name} {client.last_name}</h3></br>
-            <p>Thanks for the registration. Go on the link to confirm your email.</p></br>
-            </br>
-            <p>{confirmation_endpoint}</p>
+                <h3>Hi {client.full_name}</h3></br>
+                <p>Thanks for the registration. Go on the link to confirm your email.</p></br>
+                </br>
+                <p>{confirmation_endpoint}</p>
             </html>
         """)
+
+    def send_executor_request_to_administrators(self, user_role: UserRole):
+        administrators = UserRole.objects.filter(role=UserRole.UserRoleChoice.administrator.name)
+        for admin in administrators:
+            self.send_email(admin.user.email, "Executor request", message=f"""
+            <html>
+                <h3>Dear {admin.user.full_name}</h3></br>
+                <p>{user_role.user.full_name} requested to become an Executor!</p></br>
+                <p>Go to the application and accept him :)</p></br>
+                </br>
+            </html>
+            """)
 
 
 email_manager_instance = EmailManager(

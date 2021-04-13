@@ -43,14 +43,10 @@ class UserRoleRegistrationFormSerializer(serializers.Serializer):
         if instance.role == UserRole.UserRoleChoice.client.name:
             self._create_token_and_send_client_email_confirmation(instance)
         elif instance.role == UserRole.UserRoleChoice.executor.name:
-            self._send_confirmation_to_admins(instance)
+            email_manager_instance.send_executor_request_to_administrators(instance)
         elif instance.role == UserRole.UserRoleChoice.administrator.name:
             raise PermissionDenied("You cannot request administrator role yet")
 
     def _create_token_and_send_client_email_confirmation(self, instance: UserRole):
         token = RegistrationToken.create_token(instance)
         email_manager_instance.send_email_confirmation_to_client(self.context['request'], instance.user, token)
-
-    def _send_confirmation_to_admins(self, instance: UserRole):
-        # TODO()
-        pass
