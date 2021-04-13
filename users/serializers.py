@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import PermissionDenied, APIException
 
-from users.models import User
+from users.mail import email_manager_instance
+from users.models import User, UserRole, RegistrationToken
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -10,26 +11,46 @@ class UserSerializer(serializers.ModelSerializer):
         user = User(**validated_data)
         user.set_password(password)
         user.save()
-        self._create_confirmation(user.type)
         return user
-
-    def _create_confirmation(self, user_type: str) -> None:
-        if user_type == User.UserType.client.name:
-            self._send_email_confirmation_to_client()
-        elif user_type in (User.UserType.executor.name, User.UserType.administrator.name):
-            self._send_email_confirmation_to_administrators()
-        else:
-            raise APIException("Unsupported User's type yet")
-
-    def _send_email_confirmation_to_client(self) -> None:
-        # TODO() Implement sending user confirmation
-        pass
-
-    def _send_email_confirmation_to_administrators(self) -> None:
-        # TODO() Implement sending user confirmation
-        pass
 
     class Meta:
         model = User
-        fields = ('email', 'first_name', 'last_name', 'phone_number', 'is_confirmed', 'password', 'type')
+        fields = ('pk', 'email', 'first_name', 'last_name', 'phone_number', 'password')
         extra_kwargs = {'password': {'write_only': True}}
+
+
+class UserRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserRole
+        fields = ('user', 'is_confirmed', 'role')
+        extra_kwargs = {'is_confirmed': {'read_only': True}}
+
+
+class UserRoleRegistrationFormSerializer(serializers.Serializer):
+    user = UserSerializer()
+    role = serializers.ChoiceField(UserRole.UserRoleChoice.choices)
+
+    def update(self, instance, validated_data):
+        raise APIException("Update is not implemented")
+
+    def create(self, validated_data):
+        user = self.fields['user'].create(validated_data.pop("user"))
+        instance = UserRole.objects.create(user=user, role=validated_data.pop("role"))
+        self._send_role_confirmation(instance)
+        return instance
+
+    def _send_role_confirmation(self, instance: UserRole):
+        if instance.role == UserRole.UserRoleChoice.client.name:
+            self._create_token_and_send_client_email_confirmation(instance)
+        elif instance.role == UserRole.UserRoleChoice.executor.name:
+            self._send_confirmation_to_admins(instance)
+        elif instance.role == UserRole.UserRoleChoice.administrator.name:
+            raise PermissionDenied("You cannot request administrator role yet")
+
+    def _create_token_and_send_client_email_confirmation(self, instance: UserRole):
+        token = RegistrationToken.create_token(instance)
+        email_manager_instance.send_email_confirmation_to_client(self.context['request'], instance.user, token)
+
+    def _send_confirmation_to_admins(self, instance: UserRole):
+        # TODO()
+        pass
