@@ -21,10 +21,9 @@ class EmailManager(object):
             'from': self._from,
             'to': to,
             'subject': subject,
-            'html': message
+            'html': message,
         })
         response.raise_for_status()
-        print(response.json())
 
     def send_email_confirmation_to_client(self, request, client: User, token: str) -> None:
         confirmation_endpoint = request.build_absolute_uri(reverse(views.confirm_user, kwargs={
@@ -32,11 +31,12 @@ class EmailManager(object):
         }))
 
         self.send_email([client.email], "Confirm Email", message=f"""
-            Hi {client.first_name} {client.last_name},
-
-            Thanks for the registration. Click on the link to confirm your email.
-
-            <a href="{confirmation_endpoint}">Confirm</a>
+            <html>
+            <h3>Hi {client.first_name} {client.last_name}</h3></br>
+            <p>Thanks for the registration. Go on the link to confirm your email.</p></br>
+            </br>
+            <p>{confirmation_endpoint}</p>
+            </html>
         """)
 
 
