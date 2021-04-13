@@ -1,5 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponse
+from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, generics, permissions
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -12,16 +12,16 @@ from users.serializers import UserSerializer, UserRoleSerializer, UserRoleRegist
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([])
-def confirm_user(_, email: str, token: str):
+def confirm_user(request, email: str, token: str):
     try:
         registration_token = RegistrationToken.objects.get(token=token, user_role__user__email=email)
     except ObjectDoesNotExist:
-        return HttpResponse(f"NOT OK")
+        return render(request, 'users/email_confirmation.html', {'expired': True})
     else:
         registration_token.user_role.is_confirmed = True
         registration_token.user_role.save()
         registration_token.delete()
-        return HttpResponse(f"OK")
+        return render(request, 'users/email_confirmation.html')
 
 
 class RegisterUserView(CreateAPIView):
