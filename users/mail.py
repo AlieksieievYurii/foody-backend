@@ -1,10 +1,8 @@
 from typing import List
 
 import requests
-from django.urls import reverse
 
 from foody.settings import env
-from users import views
 from users.models import User, UserRole
 
 
@@ -25,11 +23,7 @@ class EmailManager(object):
         })
         response.raise_for_status()
 
-    def send_email_confirmation_to_client(self, request, client: User, token: str) -> None:
-        confirmation_endpoint = request.build_absolute_uri(reverse(views.confirm_user, kwargs={
-            'email': client.email, 'token': token
-        }))
-
+    def send_email_confirmation_to_client(self, confirmation_endpoint: str, client: User) -> None:
         self.send_email([client.email], "Confirm Email", message=f"""
             <html>
                 <h3>Hi {client.full_name}</h3></br>

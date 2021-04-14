@@ -1,6 +1,8 @@
+from django.urls import reverse
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied, APIException
 
+from users import views
 from users.mail import email_manager_instance
 from users.models import User, UserRole, RegistrationToken
 
@@ -15,7 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('pk', 'email', 'first_name', 'last_name', 'phone_number', 'password')
+        fields = ('pk', 'email', 'first_name', 'last_name', 'phone_number', 'password', 'is_email_confirmed')
         extra_kwargs = {'password': {'write_only': True}}
 
 
@@ -35,18 +37,22 @@ class UserRoleRegistrationFormSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         user = self.fields['user'].create(validated_data.pop("user"))
-        instance = UserRole.objects.create(user=user, role=validated_data.pop("role"))
-        self._send_role_confirmation(instance)
-        return instance
+        return self._create_role_and_send_confirmation(user, role=validated_data.pop("role"))
 
-    def _send_role_confirmation(self, instance: UserRole):
-        if instance.role == UserRole.UserRoleChoice.client.name:
-            self._create_token_and_send_client_email_confirmation(instance)
-        elif instance.role == UserRole.UserRoleChoice.executor.name:
-            email_manager_instance.send_executor_request_to_administrators(instance)
-        elif instance.role == UserRole.UserRoleChoice.administrator.name:
+    def _create_role_and_send_confirmation(self, user: User, role: str) -> UserRole:
+        if role == UserRole.UserRoleChoice.client.name:
+            self._create_token_and_send_client_email_confirmation(user)
+            return UserRole.objects.create(user=user, role=role, is_confirmed=True)
+        elif role == UserRole.UserRoleChoice.executor.name:
+            self._create_token_and_send_client_email_confirmation(user)
+            email_manager_instance.send_executor_request_to_administrators(user)
+            return UserRole.objects.create(user=user, role=role, is_confirmed=False)
+        elif role == UserRole.UserRoleChoice.administrator.name:
             raise PermissionDenied("You cannot request administrator role yet")
 
-    def _create_token_and_send_client_email_confirmation(self, instance: UserRole):
-        token = RegistrationToken.create_token(instance)
-        email_manager_instance.send_email_confirmation_to_client(self.context['request'], instance.user, token)
+    def _create_token_and_send_client_email_confirmation(self, user: User):
+        token = RegistrationToken.create_token(user)
+        confirmation_endpoint = self.context['request'].build_absolute_uri(reverse(views.confirm_user, kwargs={
+            'email': user.email, 'token': token
+        }))
+        email_manager_instance.send_email_confirmation_to_client(confirmation_endpoint, user)

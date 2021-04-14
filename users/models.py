@@ -15,6 +15,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField('phone_number', max_length=10, blank=False)
     date_joined = models.DateTimeField('date_joined', auto_now_add=True)
     is_staff = models.BooleanField('staff status', default=True)
+    is_email_confirmed = models.BooleanField('is_email_confirmed', default=False)
 
     objects = UserManager()
 
@@ -51,15 +52,15 @@ class UserRole(models.Model):
 
 
 class RegistrationToken(models.Model):
-    user_role = models.OneToOneField(UserRole, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     token = models.CharField('token', max_length=50, blank=False)
 
     @classmethod
-    def create_token(cls, user_role: UserRole) -> str:
+    def create_token(cls, user: User) -> str:
         """
         Creates a registration token for a given User
 
-        :param user_role: UserType for who need to generate token
+        :param user: user for who need to generate token
         :return: token
         """
 
@@ -67,5 +68,5 @@ class RegistrationToken(models.Model):
             return ''.join(random.choice(chars) for _ in range(size))
 
         token = _token_generator()
-        cls.objects.update_or_create(user_role=user_role, token=token)
+        cls.objects.update_or_create(user=user, token=token)
         return token
