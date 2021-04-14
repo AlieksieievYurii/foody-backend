@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 
 from users.models import User, UserRole, RegistrationToken
+from users.permissions import IsAuthenticatedConfirmed
 from users.serializers import UserSerializer, UserRoleSerializer, UserRoleRegistrationFormSerializer
 
 
@@ -83,7 +84,7 @@ class UserRoleView(RetrieveUpdateAPIView):
 class UserListView(mixins.ListModelMixin, generics.GenericAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (IsAuthenticatedConfirmed,)
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
