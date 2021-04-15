@@ -78,3 +78,50 @@ class RegistrationTestCase(TestCase):
     def test_permission_denied_register_administrator(self):
         response = self._create_user(UserRole.UserRoleChoice.administrator)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class UserListTestCase(TestCase):
+    def setUp(self) -> None:
+        self.client = APIClient()
+
+    @staticmethod
+    def _create_user_model(email: str = 'default@email.com', password: str = '1234',
+                           is_email_confirmed: bool = False) -> User:
+        return User.objects.create_user(email=email,
+                                        password=password,
+                                        first_name='Test first name',
+                                        last_name='Test last name',
+                                        phone_number='+48 123',
+                                        is_email_confirmed=is_email_confirmed)
+
+    def _login(self, user: User, user_password: str):
+        response = self.client.post('/api-token-auth/', {'username': user.email, 'password': user_password})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {response.data["token"]}')
+
+    def _create_mock_users(self):
+        self._create_user_model(email='one@test.com')
+        self._create_user_model(email='two@test.com')
+        self._create_user_model(email='three@test.com')
+
+    def test_get_list_is_not_authenticated(self):
+        self._create_mock_users()
+        resp = self.client.get('/users/')
+        self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_list_of_users(self):
+        self._create_mock_users()
+        auth_user = self._create_user_model(is_email_confirmed=True)
+        self._login(auth_user, user_password='1234')
+        resp = self.client.get('/users/')
+
+        self.assertEqual(resp.data['count'], User.objects.all().count())
+        self.assertEqual(len(resp.data['results']), User.objects.all().count())
+
+    def test_get_users_email_is_not_confirmed(self):
+        self._create_mock_users()
+        auth_user = self._create_user_model(is_email_confirmed=False)
+        self._login(auth_user, user_password='1234')
+        resp = self.client.get('/users/')
+
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
