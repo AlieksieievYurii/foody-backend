@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 
 from users.models import User, UserRole, RegistrationToken
-from users.permissions import IsAuthenticatedConfirmed
+from permissions import IsAuthenticatedConfirmed
 from users.serializers import UserSerializer, UserRoleSerializer, UserRoleRegistrationFormSerializer
 
 
