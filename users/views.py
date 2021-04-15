@@ -7,7 +7,6 @@ from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import SAFE_METHODS
 
 from users.models import User, UserRole, RegistrationToken
-from permissions import IsAuthenticatedConfirmed
 from users.serializers import UserSerializer, UserRoleSerializer, UserRoleRegistrationFormSerializer
 
 
@@ -32,7 +31,7 @@ class RegisterUserView(CreateAPIView):
 
 
 class UserRolesView(mixins.CreateModelMixin, mixins.ListModelMixin, generics.GenericAPIView):
-    class OwnerOrAdministrator(permissions.BasePermission):
+    class AdministratorCanUpdate(permissions.BasePermission):
         def has_permission(self, request, view):
             if request.method in SAFE_METHODS:
                 return True
@@ -47,7 +46,7 @@ class UserRolesView(mixins.CreateModelMixin, mixins.ListModelMixin, generics.Gen
 
     queryset = UserRole.objects.all()
     serializer_class = UserRoleSerializer
-    permission_classes = [OwnerOrAdministrator]
+    permission_classes = [AdministratorCanUpdate]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['user']
     lookup_field = 'user'
@@ -76,7 +75,6 @@ class UserRoleView(RetrieveUpdateAPIView):
 class UserListView(mixins.ListModelMixin, generics.GenericAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsAuthenticatedConfirmed,)
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
