@@ -75,3 +75,6 @@ class RegistrationTestCase(TestCase):
         self.assertFalse(UserRole.objects.first().is_confirmed)
         self.assertTrue(User.objects.first().is_email_confirmed)
 
+    def test_permission_denied_register_administrator(self):
+        response = self._create_user(UserRole.UserRoleChoice.administrator)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
