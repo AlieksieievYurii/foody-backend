@@ -1,3 +1,5 @@
+requests
+environ
 asgiref==3.3.4
 Django==3.2
 django-filter==2.4.0

@@ -1,9 +1,11 @@
-from django.conf.urls import url
+from django.urls import path
 
-from users.views import CreateUserView, UserListView
+from users.views import UserListView, UserRoleView, UserRolesView, RegisterUserView, confirm_user
 
 urlpatterns = [
-    url('register', CreateUserView.as_view()),
-    url('', UserListView.as_view()),
-
+    path('register', RegisterUserView.as_view()),
+    path('confirm/<str:email>/<str:token>', confirm_user),
+    path('roles/', UserRolesView.as_view()),
+    path('role/<int:pk>', UserRoleView.as_view()),
+    path('', UserListView.as_view()),
 ]

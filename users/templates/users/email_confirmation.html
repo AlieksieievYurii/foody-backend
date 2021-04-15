@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmed</title>
+    <style>
+.center {
+  margin: auto;
+  width: 60%;
+  border: 3px solid #73AD21;
+  padding: 10px;
+}
+
+    </style>
+</head>
+<body>
+<div class="center">
+    {% if expired %}
+    <p>The token has expired :(</p>
+    {% else %}
+    <p>Thanks for the confirmation :)</p>
+    {% endif %}
+</div>
+</body>
+</html>
