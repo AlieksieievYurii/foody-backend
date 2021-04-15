@@ -25,7 +25,6 @@ class UserRoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserRole
         fields = ('user', 'is_confirmed', 'role')
-        extra_kwargs = {'is_confirmed': {'read_only': True}}
 
 
 class UserRoleRegistrationFormSerializer(serializers.Serializer):
