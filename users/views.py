@@ -4,6 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, generics, permissions
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
+from rest_framework.permissions import SAFE_METHODS
 
 from users.models import User, UserRole, RegistrationToken
 from permissions import IsAuthenticatedConfirmed
@@ -33,31 +34,22 @@ class RegisterUserView(CreateAPIView):
 class UserRolesView(mixins.CreateModelMixin, mixins.ListModelMixin, generics.GenericAPIView):
     class OwnerOrAdministrator(permissions.BasePermission):
         def has_permission(self, request, view):
-            if request.method == 'POST':
-                return self.has_permission_to_perform_post(request)
-            elif request.method == 'UPDATE':
-                return self.has_permission_to_perform_update(request)
-            else:
+            if request.method in SAFE_METHODS:
                 return True
+            elif request.method == 'UPDATE':
+                return self.is_administrator(request.user)
+            else:
+                return False
 
         @staticmethod
         def is_administrator(user: User) -> bool:
             return UserRole.objects.filter(user=user, role=UserRole.UserRoleChoice.administrator.name).exists()
-
-        def has_permission_to_perform_post(self, request) -> bool:
-            user_serializer = UserRoleSerializer(data=request.data)
-            user_serializer.is_valid(raise_exception=True)
-            return user_serializer.validated_data['user'] == request.user or self.is_administrator(request.user)
-
-        def has_permission_to_perform_update(self, request) -> bool:
-            return self.is_administrator(request.user)
 
     queryset = UserRole.objects.all()
     serializer_class = UserRoleSerializer
     permission_classes = [OwnerOrAdministrator]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['user']
-    pagination_class = None
     lookup_field = 'user'
 
     def post(self, request, *args, **kwargs):
