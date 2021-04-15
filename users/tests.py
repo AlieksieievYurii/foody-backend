@@ -1,8 +1,6 @@
 from unittest.mock import patch
 from rest_framework import status
 from django.test import TestCase
-
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from users.models import User, UserRole, RegistrationToken
@@ -14,6 +12,14 @@ class ApiTestCase(TestCase):
 
     def setUp(self) -> None:
         self.client = APIClient()
+
+    def _create_default_user_and_log_in(self, is_email_confirmed: bool = True,
+                                        role: UserRole.UserRoleChoice = UserRole.UserRoleChoice.client,
+                                        is_role_confirmed: bool = True) -> User:
+        user = self._create_user_model(is_email_confirmed=is_email_confirmed)
+        UserRole.objects.create(user=user, role=role.name, is_confirmed=is_role_confirmed)
+        self._login(user)
+        return user
 
     @staticmethod
     def _create_user_model(email: str = DEFAULT_EMAIL, password: str = DEFAULT_PASSWORD,
@@ -130,3 +136,77 @@ class UserListTestCase(ApiTestCase):
         self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
 
 
+class UserRolesTestCase(ApiTestCase):
+    def _create_mock_users(self):
+        user_1 = self._create_user_model(email='one@test.com')
+        user_2 = self._create_user_model(email='two@test.com')
+        user_3 = self._create_user_model(email='three@test.com')
+        UserRole.objects.create(user=user_1, is_confirmed=False, role=UserRole.UserRoleChoice.client)
+        UserRole.objects.create(user=user_2, is_confirmed=True, role=UserRole.UserRoleChoice.client)
+        UserRole.objects.create(user=user_3, is_confirmed=True, role=UserRole.UserRoleChoice.executor)
+
+    def test_get_roles(self):
+        self._create_default_user_and_log_in()
+        response = self.client.get('/users/roles/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_roles_not_authenticated(self):
+        self._create_mock_users()
+        response = self.client.get('/users/roles/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_roles_is_authenticated_not_confirmed(self):
+        self._create_default_user_and_log_in(is_email_confirmed=False)
+        response = self.client.get('/users/roles/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_administrator_change_role(self):
+        user = self._create_user_model(email='user@test.email', is_email_confirmed=True)
+        user_model = UserRole.objects.create(user=user, role=UserRole.UserRoleChoice.client, is_confirmed=True)
+
+        self._create_default_user_and_log_in(is_email_confirmed=True, role=UserRole.UserRoleChoice.administrator)
+
+        response = self.client.patch(f'/users/role/{user.pk}', {'role': UserRole.UserRoleChoice.executor})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        user_model.refresh_from_db()
+        self.assertEqual(user_model.role, UserRole.UserRoleChoice.executor)
+
+    def test_client_cannot_change_roles(self):
+        user = self._create_user_model(email='user@test.email', is_email_confirmed=True)
+        UserRole.objects.create(user=user, role=UserRole.UserRoleChoice.client, is_confirmed=True)
+
+        self._create_default_user_and_log_in(is_email_confirmed=True, role=UserRole.UserRoleChoice.client)
+
+        response = self.client.patch(f'/users/role/{user.pk}', {'role': UserRole.UserRoleChoice.executor})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_executor_cannot_change_roles(self):
+        user = self._create_user_model(email='user@test.email', is_email_confirmed=True)
+        UserRole.objects.create(user=user, role=UserRole.UserRoleChoice.client, is_confirmed=True)
+
+        self._create_default_user_and_log_in(is_email_confirmed=True, role=UserRole.UserRoleChoice.executor)
+
+        response = self.client.patch(f'/users/role/{user.pk}', {'role': UserRole.UserRoleChoice.executor})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_administrator_create_role(self):
+        user = self._create_user_model(email='user@test.email', is_email_confirmed=True)
+        self._create_default_user_and_log_in(is_email_confirmed=True, role=UserRole.UserRoleChoice.administrator)
+        response = self.client.post(f'/users/roles/', {
+            'user': user.pk,
+            'is_confirmed': True,
+            'role': UserRole.UserRoleChoice.executor.name})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_user_update_personal_information(self):
+        user = self._create_default_user_and_log_in(is_email_confirmed=True, role=UserRole.UserRoleChoice.client)
+        response = self.client.patch(f'/users/{user.pk}', {'first_name': 'Yurii'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        user.refresh_from_db()
+        self.assertEqual(user.first_name, 'Yurii')
+
+    def test_user_update_another_personal_information(self):
+        self._create_default_user_and_log_in(is_email_confirmed=True, role=UserRole.UserRoleChoice.client)
+        some_user = self._create_user_model(email='some.user@email.com')
+        response = self.client.patch(f'/users/{some_user.pk}', {'first_name': 'Yurii'})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

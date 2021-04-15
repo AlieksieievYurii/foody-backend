@@ -4,8 +4,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, generics, permissions
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
-from rest_framework.permissions import SAFE_METHODS
 
+from permissions import IsAuthenticatedAndConfirmed, IsAdministrator, IsOwner
 from users.models import User, UserRole, RegistrationToken
 from users.serializers import UserSerializer, UserRoleSerializer, UserRoleRegistrationFormSerializer
 
@@ -31,22 +31,9 @@ class RegisterUserView(CreateAPIView):
 
 
 class UserRolesView(mixins.CreateModelMixin, mixins.ListModelMixin, generics.GenericAPIView):
-    class AdministratorCanUpdate(permissions.BasePermission):
-        def has_permission(self, request, view):
-            if request.method in SAFE_METHODS:
-                return True
-            elif request.method == 'UPDATE':
-                return self.is_administrator(request.user)
-            else:
-                return False
-
-        @staticmethod
-        def is_administrator(user: User) -> bool:
-            return UserRole.objects.filter(user=user, role=UserRole.UserRoleChoice.administrator.name).exists()
-
     queryset = UserRole.objects.all()
     serializer_class = UserRoleSerializer
-    permission_classes = [AdministratorCanUpdate]
+    permission_classes = [IsAdministrator, IsAuthenticatedAndConfirmed]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['user']
     lookup_field = 'user'
@@ -59,17 +46,9 @@ class UserRolesView(mixins.CreateModelMixin, mixins.ListModelMixin, generics.Gen
 
 
 class UserRoleView(RetrieveUpdateAPIView):
-    class OnlyAdministratorCanUpdate(permissions.BasePermission):
-        def has_permission(self, request, view) -> bool:
-            if request.method == 'GET':
-                return True
-            else:
-                return UserRole.objects.filter(user=request.user,
-                                               role=UserRole.UserRoleChoice.administrator.name).exists()
-
     queryset = UserRole.objects.all()
     serializer_class = UserRoleSerializer
-    permission_classes = [OnlyAdministratorCanUpdate]
+    permission_classes = [IsAdministrator]
 
 
 class UserListView(mixins.ListModelMixin, generics.GenericAPIView):
@@ -78,3 +57,9 @@ class UserListView(mixins.ListModelMixin, generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
+
+
+class UserView(RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsOwner]
