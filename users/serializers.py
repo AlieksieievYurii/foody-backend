@@ -44,7 +44,6 @@ class UserRoleRegistrationFormSerializer(serializers.Serializer):
             return UserRole.objects.create(user=user, role=role, is_confirmed=True)
         elif role == UserRole.UserRoleChoice.executor.name:
             self._create_token_and_send_client_email_confirmation(user)
-            email_manager_instance.send_executor_request_to_administrators(user)
             return UserRole.objects.create(user=user, role=role, is_confirmed=False)
         elif role == UserRole.UserRoleChoice.administrator.name:
             raise PermissionDenied("You cannot request administrator role yet")
