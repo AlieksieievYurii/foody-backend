@@ -4,7 +4,7 @@ from rest_framework import mixins, generics, permissions, status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 
-from permissions import IsAuthenticatedAndConfirmed, IsAdministrator, IsOwner
+from foody.permissions import IsAuthenticatedAndConfirmed, IsAdministrator, IsOwner
 from users.mail import email_manager_instance
 from users.models import User, UserRole, RegistrationToken
 from users.serializers import UserSerializer, UserRoleSerializer, UserRoleRegistrationFormSerializer
