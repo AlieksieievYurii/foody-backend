@@ -29,7 +29,7 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG')
 
-ALLOWED_HOSTS = ['10.17.96.189',  '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['10.17.96.189', '127.0.0.1', 'localhost']
 
 # Application definition
 
@@ -46,6 +46,17 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'drf_yasg',
 ]
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    }
+}
 
 AUTH_USER_MODEL = 'users.User'
 
