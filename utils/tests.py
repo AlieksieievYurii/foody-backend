@@ -6,6 +6,19 @@ from users.models import User, UserRole
 
 
 class ApiTestCase(TestCase):
+    class Decorators(object):
+        @staticmethod
+        def create_default_user_and_log_in(role: UserRole.UserRoleChoice = UserRole.UserRoleChoice.client):
+            def decorator(function):
+                def wrapper(self, *args, **kwargs):
+                    user = self._create_default_user_and_log_in(role=role)
+                    self._login(user)
+                    return function(self, *args, **kwargs)
+
+                return wrapper
+
+            return decorator
+
     DEFAULT_EMAIL: str = 'default@email.com'
     DEFAULT_PASSWORD: str = '1234'
 
