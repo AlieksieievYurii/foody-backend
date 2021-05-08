@@ -1,6 +1,6 @@
 from rest_framework import status
 
-from products.models import Product, ProductImage
+from products.models import Product, ProductImage, Availability
 from users.models import UserRole
 from utils.tests import ApiTestCase
 
@@ -125,3 +125,45 @@ class ProductImageTestCase(ApiTestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(ProductImage.objects.all().count(), 0)
+
+
+class AvailabilityTestCase(ApiTestCase):
+    @ApiTestCase.Decorators.create_default_user_and_log_in(role=UserRole.UserRoleChoice.client)
+    def test_get_availability(self):
+        p1 = Product.objects.create(name='Product One', description='Description', price=1.25, cooking_time=3600)
+        p2 = Product.objects.create(name='Product Two', description='Description', price=2.25, cooking_time=1600)
+        a1 = Availability.objects.create(product=p1, available=10)
+        Availability.objects.create(product=p2, available=20)
+
+        response = self.client.get(f'/products/availability/?product={p1.pk}')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['id'], a1.pk)
+
+    @ApiTestCase.Decorators.create_default_user_and_log_in(role=UserRole.UserRoleChoice.administrator)
+    def test_update_availability(self):
+        p1 = Product.objects.create(name='Product One', description='Description', price=1.25, cooking_time=3600)
+        p2 = Product.objects.create(name='Product Two', description='Description', price=2.25, cooking_time=1600)
+        a1 = Availability.objects.create(product=p1, available=10)
+        a2 = Availability.objects.create(product=p2, available=20)
+
+        response = self.client.patch(f'/products/availability/{a1.pk}/', {
+            'available': 5
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        a1.refresh_from_db()
+        a2.refresh_from_db()
+        self.assertEqual(a1.available, 5)
+        self.assertEqual(a2.available, 20)
+
+    @ApiTestCase.Decorators.create_default_user_and_log_in(role=UserRole.UserRoleChoice.executor)
+    def test_update_availability_executor(self):
+        p1 = Product.objects.create(name='Product One', description='Description', price=1.25, cooking_time=3600)
+        a1 = Availability.objects.create(product=p1, available=10)
+
+        response = self.client.patch(f'/products/availability/{a1.pk}/', {
+            'available': 5
+        })
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        a1.refresh_from_db()
+        self.assertEqual(a1.available, 10)
