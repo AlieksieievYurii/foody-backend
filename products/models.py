@@ -24,7 +24,7 @@ class ProductImage(models.Model):
         return f'{"Default " if self.is_default else ""}Image for [{self.product.name}]'
 
 
-class FeedBack(models.Model):
+class Feedback(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     rating = models.IntegerField('rating', validators=[

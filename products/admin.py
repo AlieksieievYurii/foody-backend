@@ -10,7 +10,7 @@ class ProductImageAdmin(admin.ModelAdmin):
 
 admin.site.register(Product)
 admin.site.register(ProductImage, ProductImageAdmin)
-admin.site.register(FeedBack)
+admin.site.register(Feedback)
 admin.site.register(Availability)
 admin.site.register(Category)
 admin.site.register(ProductCategory)
