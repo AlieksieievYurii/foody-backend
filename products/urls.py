@@ -5,7 +5,7 @@ from products.views import ProductView, ProductImageView, ImageUploadView, Avail
 
 router = routers.SimpleRouter()
 router.register('images', ProductImageView)
-router.register('availability', AvailabilityView)
+router.register('availabilities', AvailabilityView)
 router.register('', ProductView)
 urlpatterns = [
                   path('images/upload/', ImageUploadView.as_view())

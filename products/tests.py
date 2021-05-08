@@ -135,7 +135,7 @@ class AvailabilityTestCase(ApiTestCase):
         a1 = Availability.objects.create(product=p1, available=10)
         Availability.objects.create(product=p2, available=20)
 
-        response = self.client.get(f'/products/availability/?product={p1.pk}')
+        response = self.client.get(f'/products/availabilities/?product={p1.pk}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 1)
         self.assertEqual(response.data['results'][0]['id'], a1.pk)
@@ -147,7 +147,7 @@ class AvailabilityTestCase(ApiTestCase):
         a1 = Availability.objects.create(product=p1, available=10)
         a2 = Availability.objects.create(product=p2, available=20)
 
-        response = self.client.patch(f'/products/availability/{a1.pk}/', {
+        response = self.client.patch(f'/products/availabilities/{a1.pk}/', {
             'available': 5
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -161,7 +161,7 @@ class AvailabilityTestCase(ApiTestCase):
         p1 = Product.objects.create(name='Product One', description='Description', price=1.25, cooking_time=3600)
         a1 = Availability.objects.create(product=p1, available=10)
 
-        response = self.client.patch(f'/products/availability/{a1.pk}/', {
+        response = self.client.patch(f'/products/availabilities/{a1.pk}/', {
             'available': 5
         })
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
