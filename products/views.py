@@ -2,7 +2,6 @@ from cloudinary import uploader
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from rest_framework import viewsets, views, status
 from rest_framework.exceptions import ValidationError
-from rest_framework.parsers import FileUploadParser
 from rest_framework.response import Response
 
 from permissions import IsAdministrator, IsAuthenticatedAndConfirmed
