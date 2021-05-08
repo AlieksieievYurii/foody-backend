@@ -32,3 +32,14 @@ class Availability(models.Model):
     available = models.IntegerField('available', validators=[MinValueValidator(0)])
     is_available = models.BooleanField('is_available', default=True)
     is_active = models.BooleanField('is_active', default=True)
+
+
+class Category(models.Model):
+    name = models.CharField('name', max_length=20, blank=False)
+    icon_url = models.CharField('icon_url', max_length=200, blank=False)
+    is_icon_external = models.BooleanField('is_icon_external', default=False)
+
+
+class ProductCategory(models.Model):
+    product = models.OneToOneField(Product, on_delete=models.CASCADE)
+    category = models.OneToOneField(Category, on_delete=models.CASCADE)
