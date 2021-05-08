@@ -1,4 +1,7 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+
+from users.models import User
 
 
 class Product(models.Model):
@@ -13,3 +16,12 @@ class ProductImage(models.Model):
     image_url = models.CharField('image_url', max_length=200, blank=False)
     is_default = models.BooleanField('is_default', default=True)
     is_external = models.BooleanField('is_external', default=False)
+
+
+class FeedBack(models.Model):
+    product = models.ManyToManyField(Product, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    rating = models.IntegerField('rating', validators=[
+        MaxValueValidator(5),
+        MinValueValidator(0)
+    ])
