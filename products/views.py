@@ -1,12 +1,14 @@
 from cloudinary import uploader
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from rest_framework import viewsets, views, status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, views, status, mixins
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
 
 from permissions import IsAdministrator, IsAuthenticatedAndConfirmed
-from products.models import Product, ProductImage
-from products.serializers import ProductSerializer, ProductImageSerializer
+from products.models import Product, ProductImage, Availability
+from products.serializers import ProductSerializer, ProductImageSerializer, AvailabilitySerializer
 
 
 class ImageUploadView(views.APIView):
@@ -31,3 +33,16 @@ class ProductImageView(viewsets.ModelViewSet):
     serializer_class = ProductImageSerializer
     queryset = ProductImage.objects.all()
     permission_classes = [IsAdministrator, IsAuthenticatedAndConfirmed]
+
+
+class AvailabilityView(mixins.CreateModelMixin,
+                       mixins.RetrieveModelMixin,
+                       mixins.UpdateModelMixin,
+                       mixins.ListModelMixin,
+                       GenericViewSet):
+    serializer_class = AvailabilitySerializer
+    queryset = Availability.objects.all()
+    permission_classes = [IsAdministrator, IsAuthenticatedAndConfirmed]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['product']
+    lookup_field = 'product'
