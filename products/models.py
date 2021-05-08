@@ -10,12 +10,18 @@ class Product(models.Model):
     price = models.FloatField('price')
     cooking_time = models.IntegerField('cooking_time')
 
+    def __str__(self):
+        return self.name
+
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     image_url = models.CharField('image_url', max_length=200, blank=False)
     is_default = models.BooleanField('is_default', default=True)
     is_external = models.BooleanField('is_external', default=False)
+
+    def __str__(self):
+        return f'{"Default " if self.is_default else ""}Image for [{self.product.name}]'
 
 
 class FeedBack(models.Model):
@@ -26,6 +32,9 @@ class FeedBack(models.Model):
         MinValueValidator(0)
     ])
 
+    def __str__(self):
+        return f'{self.user.name} -> [{self.rating}] for {self.product.name}'
+
 
 class Availability(models.Model):
     product = models.OneToOneField(Product, on_delete=models.CASCADE)
@@ -33,13 +42,22 @@ class Availability(models.Model):
     is_available = models.BooleanField('is_available', default=True)
     is_active = models.BooleanField('is_active', default=True)
 
+    def __str__(self):
+        return f'[{self.product.name}] -> available: {self.available}'
+
 
 class Category(models.Model):
     name = models.CharField('name', max_length=20, blank=False)
     icon_url = models.CharField('icon_url', max_length=200, blank=False)
     is_icon_external = models.BooleanField('is_icon_external', default=False)
 
+    def __str__(self):
+        return self.name
+
 
 class ProductCategory(models.Model):
     product = models.OneToOneField(Product, on_delete=models.CASCADE)
     category = models.OneToOneField(Category, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.product.name} -> {self.category.name}'
