@@ -7,8 +7,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from permissions import IsAdministrator, IsAuthenticatedAndConfirmed
-from products.models import Product, ProductImage, Availability
-from products.serializers import ProductSerializer, ProductImageSerializer, AvailabilitySerializer
+from products.models import Product, ProductImage, Availability, Category
+from products.serializers import ProductSerializer, ProductImageSerializer, AvailabilitySerializer, CategorySerializer
 
 
 class ImageUploadView(views.APIView):
@@ -46,3 +46,9 @@ class AvailabilityView(mixins.CreateModelMixin,
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['product']
     lookup_field = 'product'
+
+
+class CategoryView(viewsets.ModelViewSet):
+    serializer_class = CategorySerializer
+    queryset = Category.objects.all()
+    permission_classes = [IsAdministrator, IsAuthenticatedAndConfirmed]
