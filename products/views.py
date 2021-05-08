@@ -7,8 +7,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from permissions import IsAdministrator, IsAuthenticatedAndConfirmed
-from products.models import Product, ProductImage, Availability, Category
-from products.serializers import ProductSerializer, ProductImageSerializer, AvailabilitySerializer, CategorySerializer
+from products.models import Product, ProductImage, Availability, Category, ProductCategory
+from products.serializers import ProductSerializer, ProductImageSerializer, AvailabilitySerializer, CategorySerializer, \
+    ProductCategorySerializer
 
 
 class ImageUploadView(views.APIView):
@@ -51,4 +52,10 @@ class AvailabilityView(mixins.CreateModelMixin,
 class CategoryView(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
+    permission_classes = [IsAdministrator, IsAuthenticatedAndConfirmed]
+
+
+class ProductCategoryView(viewsets.ModelViewSet):
+    serializer_class = ProductCategorySerializer
+    queryset = ProductCategory.objects.all()
     permission_classes = [IsAdministrator, IsAuthenticatedAndConfirmed]
