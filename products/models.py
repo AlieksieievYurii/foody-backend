@@ -26,14 +26,17 @@ class ProductImage(models.Model):
 
 class FeedBack(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     rating = models.IntegerField('rating', validators=[
         MaxValueValidator(5),
         MinValueValidator(0)
     ])
 
+    class Meta:
+        unique_together = ('product', 'user',)
+
     def __str__(self):
-        return f'{self.user.name} -> [{self.rating}] for {self.product.name}'
+        return f'{self.user.email} -> [{self.rating}] for {self.product.name}'
 
 
 class Availability(models.Model):
