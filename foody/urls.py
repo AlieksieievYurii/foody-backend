@@ -20,6 +20,7 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('api-token-auth/', AuthToken.as_view(), name='api_token_auth'),
     path('users/', include('users.urls')),
+    path('products/', include('products.urls')),
     path('admin/', admin.site.urls),
 
     path(r'swagger<str:format>', schema_view.without_ui(cache_timeout=0), name='schema-json'),
