@@ -25,3 +25,10 @@ class FeedBack(models.Model):
         MaxValueValidator(5),
         MinValueValidator(0)
     ])
+
+
+class Availability(models.Model):
+    product = models.OneToOneField(Product, on_delete=models.CASCADE)
+    available = models.IntegerField('available', validators=[MinValueValidator(0)])
+    is_available = models.BooleanField('is_available', default=True)
+    is_active = models.BooleanField('is_active', default=True)
