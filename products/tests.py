@@ -1,7 +1,7 @@
 from rest_framework import status
 
-from products.models import Product, ProductImage, Availability
-from users.models import UserRole
+from products.models import Product, ProductImage, Availability, Feedback
+from users.models import UserRole, User
 from utils.tests import ApiTestCase
 
 
@@ -167,3 +167,39 @@ class AvailabilityTestCase(ApiTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         a1.refresh_from_db()
         self.assertEqual(a1.available, 10)
+
+
+class FeedbackTestCase(ApiTestCase):
+    @ApiTestCase.Decorators.create_default_user_and_log_in(role=UserRole.UserRoleChoice.client, get_user=True)
+    def test_create_feedback(self, user: User):
+        p = Product.objects.create(name='Product One', description='Description', price=1.25, cooking_time=3600)
+        response = self.client.post('/products/feedback/', {
+            'product': p.pk,
+            'rating': 4
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        feedback = Feedback.objects.filter(user=user, product=p)
+        self.assertEqual(feedback.count(), 1)
+
+    @ApiTestCase.Decorators.create_default_user_and_log_in(role=UserRole.UserRoleChoice.client, get_user=True)
+    def test_get_feedback(self, user: User):
+        p1 = Product.objects.create(name='Product One', description='Description', price=1.25, cooking_time=3600)
+        p2 = Product.objects.create(name='Product Two', description='Description', price=1.25, cooking_time=3600)
+        Feedback.objects.create(product=p1, user=user, rating=4)
+        Feedback.objects.create(product=p2, user=user, rating=3)
+        response = self.client.get('/products/feedback/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+
+    @ApiTestCase.Decorators.create_default_user_and_log_in(role=UserRole.UserRoleChoice.client, get_user=True)
+    def test_get_feedback_for_specific_product(self, user: User):
+        p1 = Product.objects.create(name='Product One', description='Description', price=1.25, cooking_time=3600)
+        p2 = Product.objects.create(name='Product Two', description='Description', price=1.25, cooking_time=3600)
+        Feedback.objects.create(product=p1, user=user, rating=4)
+        Feedback.objects.create(product=p2, user=user, rating=3)
+        response = self.client.get(f'/products/feedback/?product={p1.pk}')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['product'], p1.pk)
