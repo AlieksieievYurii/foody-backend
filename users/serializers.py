@@ -1,6 +1,7 @@
 from django.urls import reverse
-from rest_framework import serializers
-from rest_framework.exceptions import PermissionDenied, APIException
+from requests import HTTPError
+from rest_framework import serializers, status
+from rest_framework.exceptions import PermissionDenied, APIException, ValidationError
 
 from users import views
 from users.mail import email_manager_instance
@@ -53,4 +54,8 @@ class UserRoleRegistrationFormSerializer(serializers.Serializer):
         confirmation_endpoint = self.context['request'].build_absolute_uri(reverse(views.confirm_user, kwargs={
             'email': user.email, 'token': token
         }))
-        email_manager_instance.send_email_confirmation_to_client(confirmation_endpoint, user)
+        try:
+            email_manager_instance.send_email_confirmation_to_client(confirmation_endpoint, user)
+        except HTTPError:
+            user.delete()
+            raise ValidationError({'email': "This email does not exist"}, code=status.HTTP_400_BAD_REQUEST)
