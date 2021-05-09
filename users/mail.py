@@ -15,12 +15,13 @@ class EmailManager(object):
         self._from: str = f'Test Foody <mailgun@{domain_name}>'
 
     def send_email(self, to: List[str], subject: str, message: str) -> None:
-        requests.post(self._full_url, auth=('api', self._api_key), data={
+        response = requests.post(self._full_url, auth=('api', self._api_key), data={
             'from': self._from,
             'to': to,
             'subject': subject,
             'html': message,
         })
+        response.raise_for_status()
 
     def send_email_confirmation_to_client(self, confirmation_endpoint: str, client: User) -> None:
         self.send_email([client.email], "Confirm Email", message=f"""

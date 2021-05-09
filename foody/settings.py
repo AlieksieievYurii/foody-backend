@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+import cloudinary
 from environ import environ
 
 env = environ.Env()
@@ -29,7 +30,7 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG')
 
-ALLOWED_HOSTS = ['10.17.96.189',  '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['10.17.96.189', '127.0.0.1', 'localhost']
 
 # Application definition
 
@@ -38,13 +39,26 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework',
     'users.apps.UsersConfig',
+    'products.apps.ProductsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'drf_yasg',
 ]
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    }
+}
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -117,6 +131,12 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+cloudinary.config(
+    cloud_name=env('CLOUDINARY_CLOUD_NAME'),
+    api_key=env('CLOUDINARY_API_KEY'),
+    api_secret=env('CLOUDINARY_API_SECRET')
+)
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
