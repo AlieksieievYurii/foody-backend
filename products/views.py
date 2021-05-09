@@ -1,15 +1,17 @@
 from cloudinary import uploader
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, views, status, mixins
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from permissions import IsAdministrator, IsAuthenticatedAndConfirmed
-from products.models import Product, ProductImage, Availability, Category, ProductCategory
+from products.models import Product, ProductImage, Availability, Category, ProductCategory, Feedback
 from products.serializers import ProductSerializer, ProductImageSerializer, AvailabilitySerializer, CategorySerializer, \
-    ProductCategorySerializer
+    ProductCategorySerializer, FeedbackSerializer
 
 
 class ImageUploadView(views.APIView):
@@ -59,3 +61,23 @@ class ProductCategoryView(viewsets.ModelViewSet):
     serializer_class = ProductCategorySerializer
     queryset = ProductCategory.objects.all()
     permission_classes = [IsAdministrator, IsAuthenticatedAndConfirmed]
+
+
+class FeedbackView(mixins.CreateModelMixin,
+                   mixins.RetrieveModelMixin,
+                   mixins.ListModelMixin,
+                   GenericViewSet):
+    serializer_class = FeedbackSerializer
+    queryset = Feedback.objects.all()
+    permission_classes = [IsAuthenticatedAndConfirmed]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['product']
+    lookup_field = 'product'
+
+    @swagger_auto_schema(request_body=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+        'product': openapi.Schema(type=openapi.TYPE_INTEGER),
+        'rating': openapi.Schema(type=openapi.TYPE_INTEGER)
+    }))
+    def create(self, request, *args, **kwargs):
+        request.data['user'] = request.user.pk
+        return super().create(request, *args, **kwargs)
