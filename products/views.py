@@ -4,6 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, views, status, mixins, filters
+from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -98,3 +99,22 @@ class FeedbackView(mixins.CreateModelMixin,
     def create(self, request, *args, **kwargs):
         request.data['user'] = request.user.pk
         return super().create(request, *args, **kwargs)
+
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter(name='product_ids', in_=openapi.IN_QUERY, type=openapi.TYPE_STRING, required=True)
+    ], responses={
+        status.HTTP_200_OK: openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+            'product': openapi.Schema(type=openapi.TYPE_INTEGER),
+            'rating': openapi.Schema(type=openapi.TYPE_INTEGER)
+        })
+    })
+    @action(methods=['GET'], detail=False, url_path='product-rating')
+    def products_rating(self, request):
+        product_ids = request.query_params['product_ids'].split(',')
+        response = []
+        for product_id in product_ids:
+            feedbacks = Feedback.objects.filter(product_id=product_id)
+            if feedbacks:
+                rating = sum(map(lambda f: f.rating, feedbacks)) / feedbacks.count()
+                response.append({'product': product_id, 'rating': rating})
+        return Response(response)
