@@ -53,6 +53,20 @@ class AvailabilityView(mixins.CreateModelMixin,
     filterset_fields = ['product']
     lookup_field = 'product'
 
+    def get_queryset(self):
+        product_query = self.request.query_params.get('product_ids', None)
+        if product_query:
+            products = product_query.split(',')
+            return super().get_queryset().filter(product_id__in=products)
+        else:
+            return super().get_queryset()
+
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter(name='product_ids', in_=openapi.IN_QUERY, type=openapi.TYPE_STRING)
+    ])
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class CategoryView(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
