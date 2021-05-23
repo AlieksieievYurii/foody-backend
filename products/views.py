@@ -35,6 +35,15 @@ class ProductView(viewsets.ModelViewSet):
     search_fields = ['name']
     filterset_fields = ['availability__is_available', 'availability__is_active']
 
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter(name='ids', in_=openapi.IN_QUERY, type=openapi.TYPE_STRING, required=True),
+    ], responses={status.HTTP_204_NO_CONTENT: 'Items have been deleted'})
+    @action(methods=['DELETE'], detail=False)
+    def delete_many(self, request):
+        ids = request.query_params.get('ids', None)
+        self.queryset.filter(id__in=ids.split(',')).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class ProductImageView(viewsets.ModelViewSet):
     serializer_class = ProductImageSerializer
