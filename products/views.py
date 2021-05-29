@@ -41,7 +41,8 @@ class ProductView(viewsets.ModelViewSet):
     @action(methods=['DELETE'], detail=False)
     def delete_many(self, request):
         ids = request.query_params.get('ids', None)
-        self.queryset.filter(id__in=ids.split(',')).delete()
+        if ids:
+            self.queryset.filter(id__in=ids.split(',')).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
