@@ -18,13 +18,8 @@ from products.serializers import ProductSerializer, ProductImageSerializer, Avai
 class ImageUploadView(views.APIView):
     @staticmethod
     def post(request):
-        file_obj: InMemoryUploadedFile = request.data.get('file')
-        if not file_obj:
-            raise ValidationError('File must be specified', code=status.HTTP_400_BAD_REQUEST)
-
-        response = uploader.upload(file_obj.read())
-
-        return Response(data={'url': response['secure_url']}, status=204)
+        response = uploader.upload(request.body)
+        return Response(data={'url': response['secure_url']}, status=201)
 
 
 class ProductView(viewsets.ModelViewSet):
@@ -98,6 +93,7 @@ class AvailabilityView(mixins.CreateModelMixin,
 class CategoryView(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
+    pagination_class = None
     permission_classes = [IsAdministrator, IsAuthenticatedAndConfirmed]
 
 
