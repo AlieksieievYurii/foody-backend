@@ -1,3 +1,5 @@
+from time import sleep
+
 from cloudinary import uploader
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django_filters.rest_framework import DjangoFilterBackend
@@ -101,6 +103,9 @@ class ProductCategoryView(viewsets.ModelViewSet):
     serializer_class = ProductCategorySerializer
     queryset = ProductCategory.objects.all()
     permission_classes = [IsAdministrator, IsAuthenticatedAndConfirmed]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['product']
+    lookup_field = 'product'
 
 
 class FeedbackView(mixins.CreateModelMixin,
