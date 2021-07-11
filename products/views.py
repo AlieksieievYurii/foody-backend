@@ -91,7 +91,6 @@ class AvailabilityView(mixins.CreateModelMixin,
 class CategoryView(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
-    pagination_class = None
     permission_classes = [IsAdministrator, IsAuthenticatedAndConfirmed]
 
 
