@@ -25,7 +25,7 @@ class UserSerializer(serializers.ModelSerializer):
 class UserRoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserRole
-        fields = ('user', 'is_confirmed', 'role')
+        fields = ('pk', 'user', 'is_confirmed', 'role')
 
 
 class UserRoleRegistrationFormSerializer(serializers.Serializer):
