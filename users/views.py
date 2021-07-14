@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, generics, permissions, status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
@@ -63,7 +65,7 @@ class UserRolesView(mixins.CreateModelMixin, mixins.ListModelMixin, generics.Gen
     serializer_class = UserRoleSerializer
     permission_classes = [IsAdministrator, IsAuthenticatedAndConfirmed]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['user']
+    filterset_fields = ['user', 'is_confirmed']
     lookup_field = 'user'
 
     def post(self, request, *args, **kwargs):
@@ -83,6 +85,17 @@ class UserListView(mixins.ListModelMixin, generics.GenericAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+    def get_queryset(self):
+        users_ids = self.request.query_params.get('users_ids', None)
+        if users_ids:
+            users = users_ids.split(',')
+            return super().get_queryset().filter(id__in=users)
+        else:
+            return super().get_queryset()
+
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter(name='users_ids', in_=openapi.IN_QUERY, type=openapi.TYPE_STRING)
+    ])
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
