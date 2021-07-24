@@ -1,3 +1,4 @@
+
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status
@@ -24,9 +25,10 @@ class OrderView(mixins.CreateModelMixin,
     }))
     def create(self, request, *args, **kwargs):
         try:
-            product = Product.objects.get(pk=request.data['product'])
+            product = Product.objects.get(pk=request.data.get('product'))
         except Product.DoesNotExist:
-            return Response(f'Product with pk: {request.data["product"]} not found', status=status.HTTP_400_BAD_REQUEST)
+            return Response(f'Product with pk: {request.data.get("product")} not found',
+                            status=status.HTTP_400_BAD_REQUEST)
         request.data['user'] = request.user.pk
         request.data['price'] = product.price
         request.data['cooking_time'] = product.cooking_time
