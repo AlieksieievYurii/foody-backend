@@ -22,6 +22,7 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('products/', include('products.urls')),
     path('admin/', admin.site.urls),
+    path('orders/', include('orders.urls')),
 
     path(r'swagger<str:format>', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path(r'swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
