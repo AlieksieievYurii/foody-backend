@@ -55,6 +55,19 @@ def confirm_user(request, email: str, token: str):
         return render(request, 'users/email_confirmation.html')
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticatedAndConfirmed])
+def become_cook(request):
+    user_role = UserRole.objects.get(user=request.user)
+    if user_role.role == UserRole.UserRoleChoice.executor:
+        return Response('You are already a Cook', status=status.HTTP_400_BAD_REQUEST)
+    user_role.role = UserRole.UserRoleChoice.executor
+    user_role.is_confirmed = False
+    user_role.save()
+
+    return Response(status=status.HTTP_201_CREATED)
+
+
 class RegisterUserView(CreateAPIView):
     serializer_class = UserRoleRegistrationFormSerializer
     permission_classes = (permissions.AllowAny,)
