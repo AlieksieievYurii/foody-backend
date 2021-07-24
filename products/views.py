@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from permissions import IsAdministrator, IsAuthenticatedAndConfirmed
+from foody.permissions import IsAdministrator, IsAuthenticatedAndConfirmed
 from products.models import Product, ProductImage, Availability, Category, ProductCategory, Feedback
 from products.serializers import ProductSerializer, ProductImageSerializer, AvailabilitySerializer, CategorySerializer, \
     ProductCategorySerializer, FeedbackSerializer
