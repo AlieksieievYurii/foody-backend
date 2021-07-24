@@ -35,6 +35,7 @@ ALLOWED_HOSTS = ['10.17.96.189', '127.0.0.1', 'localhost']
 # Application definition
 
 INSTALLED_APPS = [
+    'django_extensions',
     'django_filters',
     'rest_framework.authtoken',
     'rest_framework',
