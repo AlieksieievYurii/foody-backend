@@ -1,14 +1,14 @@
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import mixins, status
+from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import NotAcceptable
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from orders.models import Order
-from orders.serializers import OrderSerializer
-from permissions import IsAuthenticatedAndConfirmed
+from orders.models import Order, OrderExecution
+from orders.serializers import OrderSerializer, OrderExecutionSerializer
+from foody.permissions import IsAuthenticatedAndConfirmed, IsExecutor
 from products.models import Product, Availability
 
 
@@ -45,3 +45,9 @@ class OrderView(mixins.CreateModelMixin,
         availability.is_available = bool(availability.available)
         availability.save()
         super().perform_create(serializer)
+
+
+class OrderExecutionView(viewsets.ModelViewSet):
+    serializer_class = OrderExecutionSerializer
+    queryset = OrderExecution.objects.all()
+    permission_classes = [IsAuthenticatedAndConfirmed, IsExecutor]
