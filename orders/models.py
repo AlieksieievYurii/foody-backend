@@ -19,10 +19,10 @@ class Order(models.Model):
 
 class OrderExecution(models.Model):
     class Status(models.TextChoices):
-        PENDING = ('pending', 'pending')
-        COOKING = ('cooking', 'cooking')
-        FINISHED = ('finished', 'finished')
-        DELIVERED = ('delivered', 'delivered')
+        pending = ('pending', 'pending')
+        cooking = ('cooking', 'cooking')
+        finished = ('finished', 'finished')
+        delivered = ('delivered', 'delivered')
 
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     executor = models.ForeignKey(User, on_delete=models.CASCADE)

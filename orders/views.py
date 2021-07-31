@@ -51,3 +51,15 @@ class OrderExecutionView(viewsets.ModelViewSet):
     serializer_class = OrderExecutionSerializer
     queryset = OrderExecution.objects.all()
     permission_classes = [IsAuthenticatedAndConfirmed, IsExecutor]
+
+    @swagger_auto_schema(request_body=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+        'order': openapi.Schema(type=openapi.TYPE_INTEGER),
+    }))
+    def create(self, request, *args, **kwargs):
+        try:
+            Order.objects.get(pk=request.data.get('order'))
+        except Order.DoesNotExist:
+            return Response(f'Order with pk: {request.data.get("order")} not found', status=status.HTTP_400_BAD_REQUEST)
+        request.data['executor'] = request.user.pk
+        request.data['status'] = OrderExecution.Status.pending.name
+        return super().create(request, *args, **kwargs)
