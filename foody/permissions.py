@@ -9,6 +9,12 @@ class IsAuthenticatedAndConfirmed(permissions.IsAuthenticated):
         return super().has_permission(request, view) and request.user.is_email_confirmed
 
 
+class IsExecutor(permissions.BasePermission):
+    def has_permission(self, request, view) -> bool:
+        user_role = UserRole.objects.filter(user=request.user, is_confirmed=True).first()
+        return user_role.role in (UserRole.UserRoleChoice.executor.name, UserRole.UserRoleChoice.administrator.name)
+
+
 class IsAdministrator(permissions.BasePermission):
     def has_permission(self, request, view) -> bool:
         if request.method in SAFE_METHODS:
