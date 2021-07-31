@@ -38,6 +38,20 @@ class ProductView(viewsets.ModelViewSet):
             self.queryset.filter(id__in=ids.split(',')).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    def get_queryset(self):
+        product_query = self.request.query_params.get('ids', None)
+        if product_query:
+            products = product_query.split(',')
+            return super().get_queryset().filter(id__in=products)
+        else:
+            return super().get_queryset()
+
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter(name='ids', in_=openapi.IN_QUERY, type=openapi.TYPE_STRING)
+    ])
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class ProductImageView(viewsets.ModelViewSet):
     serializer_class = ProductImageSerializer
