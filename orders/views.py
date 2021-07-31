@@ -2,6 +2,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status
 from rest_framework.exceptions import NotAcceptable
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -18,6 +19,8 @@ class OrderView(mixins.CreateModelMixin,
     serializer_class = OrderSerializer
     queryset = Order.objects.all()
     permission_classes = [IsAuthenticatedAndConfirmed]
+    filter_backends = (OrderingFilter,)
+    ordering_fields = ('timestamp',)
 
     @swagger_auto_schema(request_body=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
         'product': openapi.Schema(type=openapi.TYPE_INTEGER),
