@@ -15,3 +15,18 @@ class Order(models.Model):
 
     def __str__(self):
         return f'{self.product.name} for {self.user.first_name}'
+
+
+class OrderExecution(models.Model):
+    class Status(models.TextChoices):
+        PENDING = ('pending', 'pending')
+        COOKING = ('cooking', 'cooking')
+        FINISHED = ('finished', 'finished')
+        DELIVERED = ('delivered', 'delivered')
+
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    executor = models.ForeignKey(User, on_delete=models.CASCADE)
+    status = models.CharField('role', choices=Status.choices, max_length=15, blank=False)
+
+    class Meta:
+        unique_together = ['order', 'executor']
