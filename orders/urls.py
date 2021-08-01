@@ -1,9 +1,12 @@
+from django.urls import path
 from rest_framework import routers
 
-from orders.views import OrderView, OrderExecutionView
+from orders.views import OrderView, OrderExecutionView, get_current_order_execution
 
 router = routers.SimpleRouter()
 router.register('execution', OrderExecutionView)
 router.register('', OrderView)
 
-urlpatterns = router.urls
+urlpatterns = router.urls + [
+    path('current_order_execution', get_current_order_execution),
+]

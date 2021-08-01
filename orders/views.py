@@ -1,6 +1,7 @@
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import NotAcceptable
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
@@ -10,6 +11,16 @@ from orders.models import Order, OrderExecution
 from orders.serializers import OrderSerializer, OrderExecutionSerializer
 from foody.permissions import IsAuthenticatedAndConfirmed, IsExecutor
 from products.models import Product, Availability
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticatedAndConfirmed, IsExecutor])
+def get_current_order_execution(request):
+    order_execution = OrderExecution.objects.filter(executor=request.user).first()
+    if not order_execution:
+        return Response('There is not current order', status=status.HTTP_404_NOT_FOUND)
+    serializer = OrderExecutionSerializer(order_execution)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class OrderView(mixins.CreateModelMixin,
