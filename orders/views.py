@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status, viewsets
@@ -7,7 +9,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from orders.models import Order, OrderExecution
+from orders.models import Order, OrderExecution, History
 from orders.serializers import OrderSerializer, OrderExecutionSerializer
 from foody.permissions import IsAuthenticatedAndConfirmed, IsExecutor
 from products.models import Product, Availability
@@ -74,3 +76,26 @@ class OrderExecutionView(viewsets.ModelViewSet):
         request.data['executor'] = request.user.pk
         request.data['status'] = OrderExecution.Status.pending.name
         return super().create(request, *args, **kwargs)
+
+    def perform_update(self, serializer):
+        status = OrderExecution.Status(serializer.validated_data['status'])
+        if status == OrderExecution.Status.delivered:
+            self.create_history_item(order_execution_id=serializer.data['id'])
+        else:
+            super().perform_update(serializer)
+
+    @staticmethod
+    def create_history_item(order_execution_id: int):
+        order_execution = OrderExecution.objects.get(pk=order_execution_id)
+        History.objects.create(
+            product=order_execution.order.product,
+            user=order_execution.order.user,
+            count=order_execution.order.count,
+            price=order_execution.order.price,
+            cooking_time=order_execution.order.cooking_time,
+            timestamp=order_execution.order.timestamp,
+            executor=order_execution.executor,
+            finish_time=datetime.now(),
+            delivery_address="Test"
+        )
+        order_execution.delete()
