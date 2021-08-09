@@ -99,3 +99,11 @@ class OrderExecutionView(viewsets.ModelViewSet):
             delivery_address="Test"
         )
         order_execution.delete()
+
+
+class HistoryView(mixins.RetrieveModelMixin,
+                  mixins.ListModelMixin,
+                  GenericViewSet):
+    serializer_class = OrderSerializer
+    queryset = History.objects.all()
+    permission_classes = [IsAuthenticatedAndConfirmed]
