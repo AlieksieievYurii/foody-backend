@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from orders.models import Order, OrderExecution, History
-from orders.serializers import OrderSerializer, OrderExecutionSerializer
+from orders.serializers import OrderSerializer, OrderExecutionSerializer, HistorySerializer
 from foody.permissions import IsAuthenticatedAndConfirmed, IsExecutor
 from products.models import Product, Availability
 
@@ -59,6 +59,22 @@ class OrderView(mixins.CreateModelMixin,
         availability.save()
         super().perform_create(serializer)
 
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter('mine', openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN)
+    ])
+    def list(self, request, *args, **kwargs):
+        if request.query_params['mine'] == 'true':
+            queryset = self.filter_queryset(self.get_queryset().filter(user=request.user))
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+        else:
+            return super().list(request, *args, **kwargs)
+
 
 class OrderExecutionView(viewsets.ModelViewSet):
     serializer_class = OrderExecutionSerializer
@@ -104,7 +120,7 @@ class OrderExecutionView(viewsets.ModelViewSet):
 class HistoryView(mixins.RetrieveModelMixin,
                   mixins.ListModelMixin,
                   GenericViewSet):
-    serializer_class = OrderSerializer
+    serializer_class = HistorySerializer
     queryset = History.objects.all()
     permission_classes = [IsAuthenticatedAndConfirmed]
 
