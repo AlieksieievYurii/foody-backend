@@ -30,3 +30,15 @@ class OrderExecution(models.Model):
 
     class Meta:
         unique_together = ['order', 'executor']
+
+
+class History(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='client')
+    count = models.IntegerField('count', validators=[MinValueValidator(0)])
+    price = models.FloatField('price')
+    cooking_time = models.IntegerField('cooking_time')
+    timestamp = models.DateTimeField(auto_now_add=True)
+    executor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cook')
+    finish_time = models.DateTimeField()
+    delivery_address = models.CharField('delivery_address', max_length=100)
