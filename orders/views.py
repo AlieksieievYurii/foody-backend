@@ -107,3 +107,19 @@ class HistoryView(mixins.RetrieveModelMixin,
     serializer_class = OrderSerializer
     queryset = History.objects.all()
     permission_classes = [IsAuthenticatedAndConfirmed]
+
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter('mine', openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN)
+    ])
+    def list(self, request, *args, **kwargs):
+        if request.query_params['mine'] == 'true':
+            queryset = self.filter_queryset(self.get_queryset().filter(user=request.user))
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+        else:
+            return super().list(request, *args, **kwargs)
