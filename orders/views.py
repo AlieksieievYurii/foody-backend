@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status, viewsets
@@ -115,6 +116,20 @@ class OrderExecutionView(viewsets.ModelViewSet):
             delivery_address="Test"
         )
         order_execution.delete()
+
+    def get_queryset(self):
+        order_query = self.request.query_params.get('orders_ids', None)
+        if order_query:
+            orders = order_query.split(',')
+            return super().get_queryset().filter(order_id__in=orders)
+        else:
+            return super().get_queryset()
+
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter(name='orders_ids', in_=openapi.IN_QUERY, type=openapi.TYPE_STRING)
+    ])
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class HistoryView(mixins.RetrieveModelMixin,
