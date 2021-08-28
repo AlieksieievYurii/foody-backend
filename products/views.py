@@ -146,6 +146,26 @@ class FeedbackView(mixins.CreateModelMixin,
         request.data['user'] = request.user.pk
         return super().create(request, *args, **kwargs)
 
+    def get_queryset(self):
+        query = super().get_queryset()
+        product_query = self.request.query_params.get('product_ids', None)
+
+        if product_query:
+            products = product_query.split(',')
+            query = super().get_queryset().filter(product_id__in=products)
+
+        if self.request.query_params.get('mine', False) == 'true':
+            query = query.filter(user=self.request.user)
+
+        return query
+
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter(name='product_ids', in_=openapi.IN_QUERY, type=openapi.TYPE_STRING),
+        openapi.Parameter(name='mine', in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN),
+    ])
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
     @swagger_auto_schema(manual_parameters=[
         openapi.Parameter(name='product_ids', in_=openapi.IN_QUERY, type=openapi.TYPE_STRING, required=True)
     ], responses={
