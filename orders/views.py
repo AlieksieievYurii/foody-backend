@@ -33,8 +33,9 @@ class OrderView(mixins.CreateModelMixin,
     serializer_class = OrderSerializer
     queryset = Order.objects.all()
     permission_classes = [IsAuthenticatedAndConfirmed]
-    filter_backends = (OrderingFilter,)
+    filter_backends = (OrderingFilter,DjangoFilterBackend)
     ordering_fields = ('timestamp',)
+    filterset_fields = ['is_taken']
 
     @swagger_auto_schema(request_body=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
         'product': openapi.Schema(type=openapi.TYPE_INTEGER),
@@ -87,7 +88,9 @@ class OrderExecutionView(viewsets.ModelViewSet):
     }))
     def create(self, request, *args, **kwargs):
         try:
-            Order.objects.get(pk=request.data.get('order'))
+            order = Order.objects.get(pk=request.data.get('order'))
+            order.is_taken = True
+            order.save()
         except Order.DoesNotExist:
             return Response(f'Order with pk: {request.data.get("order")} not found', status=status.HTTP_400_BAD_REQUEST)
         request.data['executor'] = request.user.pk
@@ -115,6 +118,7 @@ class OrderExecutionView(viewsets.ModelViewSet):
             finish_time=datetime.now(),
             delivery_address="Test"
         )
+        order_execution.order.delete()
         order_execution.delete()
 
     def get_queryset(self):

@@ -12,6 +12,7 @@ class Order(models.Model):
     price = models.FloatField('price')
     cooking_time = models.IntegerField('cooking_time')
     timestamp = models.DateTimeField(auto_now_add=True)
+    is_taken = models.BooleanField('is_taken', default=False)
 
     def __str__(self):
         return f'{self.product.name} for {self.user.first_name}'
